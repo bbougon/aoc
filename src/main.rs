@@ -1,35 +1,67 @@
+use std::fmt::{Display, Formatter};
 use std::{env, fs};
 
 fn main() {
-    println!("Elves stocks!");
+    println!("Elves AOC!");
     let args: Vec<String> = env::args().collect();
     let file_path = &args[1];
-    let file_content =
-        fs::read_to_string(file_path).expect("Should have been able to read the file");
-    let stocks: Vec<&str> = file_content.split("\n").collect();
-    println!(
-        "Most calories: {} - Top three most calories: {}",
-        most_calories(stocks.clone()),
-        top_3_most_calories_sum(stocks)
-    )
+    println!("{}", Day1::run(file_path));
 }
 
-fn top_3_most_calories_sum(stocks: Vec<&str>) -> u32 {
-    let mut sums: Vec<u32> = sums_of_calories(Stock::new(stocks));
-    sums.sort();
-    sums.iter().rev().take(3).sum()
+#[derive(PartialEq)]
+struct Day1 {
+    most_calories: u32,
+    top_3_most_calories_sum: u32,
 }
 
-fn most_calories(stocks: Vec<&str>) -> u32 {
-    *sums_of_calories(Stock::new(stocks)).iter().max().unwrap()
+impl Display for Day1 {
+    fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
+        writeln!(formatter, "Day 1, Elves stocks:")?;
+        writeln!(formatter, "\t- Most calories: {}", self.most_calories)?;
+        writeln!(
+            formatter,
+            "\t- Top three most calories: {}",
+            self.top_3_most_calories_sum
+        )?;
+        Ok(())
+    }
 }
 
-fn sums_of_calories(stock: Stock) -> Vec<u32> {
-    stock
-        .0
-        .iter()
-        .map(|calories_items| calories_items.0.iter().sum())
-        .collect::<Vec<u32>>()
+impl Day1 {
+    fn run(file_path: &String) -> Day1 {
+        let stock = Self::stock(file_path.into());
+        Day1 {
+            most_calories: Self::most_calories(&stock),
+            top_3_most_calories_sum: Self::top_3_most_calories_sum(&stock),
+        }
+    }
+
+    fn stock(file_path: &String) -> Stock {
+        let file_content = fs::read_to_string(file_path).expect(&*format!(
+            "Should have been able to read the file '{}'",
+            file_path
+        ));
+        let stocks: Vec<&str> = file_content.split("\n\n").collect();
+        Stock::new(stocks)
+    }
+
+    fn top_3_most_calories_sum(stock: &Stock) -> u32 {
+        let mut sums: Vec<u32> = Self::sums_of_calories(stock);
+        sums.sort();
+        sums.iter().rev().take(3).sum()
+    }
+
+    fn most_calories(stock: &Stock) -> u32 {
+        *Self::sums_of_calories(stock).iter().max().unwrap()
+    }
+
+    fn sums_of_calories(stock: &Stock) -> Vec<u32> {
+        stock
+            .0
+            .iter()
+            .map(|calories_items| calories_items.0.iter().sum())
+            .collect::<Vec<u32>>()
+    }
 }
 
 #[derive(PartialEq, Debug)]
@@ -38,20 +70,20 @@ struct Stock(Vec<CaloriesItems>);
 impl Stock {
     fn new(calories_stock: Vec<&str>) -> Stock {
         let mut stocks: Vec<CaloriesItems> = Vec::new();
-        let mut calories_items: Vec<u32> = Vec::new();
         calories_stock.iter().for_each(|calories| {
-            if *calories == "" {
-                stocks.push(CaloriesItems(calories_items.clone()));
-                calories_items = Vec::new();
-            } else {
-                calories_items.push(
+            let values = calories
+                .split("\n")
+                .collect::<Vec<&str>>()
+                .iter()
+                .filter(|str| !str.is_empty())
+                .map(|calories| {
                     calories
                         .parse::<u32>()
-                        .expect("Could not parse string as int"),
-                )
-            }
+                        .expect(&format!("Could not parse '{}' as int", calories))
+                })
+                .collect::<Vec<u32>>();
+            stocks.push(CaloriesItems(values));
         });
-        stocks.push(CaloriesItems(calories_items));
         Stock(stocks)
     }
 }
@@ -71,30 +103,32 @@ impl PartialEq for CaloriesItems {
 
 #[cfg(test)]
 mod elves_test {
-    use crate::{most_calories, top_3_most_calories_sum};
+    #[cfg(test)]
+    mod day_1 {
+        use crate::Day1;
 
-    #[test]
-    fn day_1() {
-        assert_eq!(most_calories(vec!["1000", "2000", "3000"]), 6000);
-        assert_eq!(
-            most_calories(vec![
-                "1000", "2000", "3000", "", "2000", "2000", "1000", "1000"
-            ]),
-            6000
-        );
-        assert_eq!(
-            most_calories(vec![
-                "1000", "2000", "3000", "", "2000", "2000", "1000", "1000", "", "2011", "5421",
-                "5432", "6231", "", "2024", "2300", "2500"
-            ]),
-            19095
-        );
-        assert_eq!(
-            top_3_most_calories_sum(vec![
-                "1000", "2000", "3000", "", "2000", "2000", "1000", "1000", "", "2011", "5421",
-                "5432", "6231", "", "2024", "2300", "2500", "", "1000", "", "2000"
-            ]),
-            19095 + 6824 + 6000
-        );
+        #[test]
+        fn should_have_most_calories() {
+            assert_eq!(
+                Day1::run(&String::from("resources/tests/day_1_001.txt")).most_calories,
+                6000
+            );
+            assert_eq!(
+                Day1::run(&String::from("resources/tests/day_1_002.txt")).most_calories,
+                6000
+            );
+            assert_eq!(
+                Day1::run(&String::from("resources/tests/day_1_003.txt")).most_calories,
+                19095
+            );
+        }
+
+        #[test]
+        fn should_have_top_three_most_calories() {
+            assert_eq!(
+                Day1::run(&String::from("resources/tests/day_1_004.txt")).top_3_most_calories_sum,
+                19095 + 6824 + 6000
+            );
+        }
     }
 }
