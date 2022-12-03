@@ -1,11 +1,17 @@
+use clap::Parser;
 use std::fmt::{Display, Formatter};
-use std::{env, fs};
+use std::fs;
 
 fn main() {
-    println!("Elves AOC!");
-    let args: Vec<String> = env::args().collect();
-    let file_path = &args[1];
-    println!("{}", Day1::run(file_path));
+    let cli = Cli::parse();
+    println!("{}", Day1::run(&cli.file_path));
+}
+
+#[derive(Parser)]
+#[command(author, version, about = "Elves AOC!", long_about = None)]
+struct Cli {
+    #[arg(short, long, value_name = "FILE")]
+    file_path: String,
 }
 
 #[derive(PartialEq)]
