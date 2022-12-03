@@ -1,5 +1,5 @@
+use crate::file_reader::file_content;
 use std::fmt::{Display, Formatter};
-use std::fs;
 
 impl Day1 {
     pub(crate) fn run(file_path: &String) -> Day1 {
@@ -11,10 +11,7 @@ impl Day1 {
     }
 
     fn stock(file_path: &String) -> Stock {
-        let file_content = fs::read_to_string(file_path).expect(&*format!(
-            "Should have been able to read the file '{}'",
-            file_path
-        ));
+        let file_content = file_content(file_path);
         let stocks: Vec<&str> = file_content.split("\n\n").collect();
         Stock::new(stocks)
     }
