@@ -4,30 +4,46 @@ use std::ops::RangeInclusive;
 
 pub struct Day4 {
     number_of_pairs: u32,
+    number_of_pairs_partly_overlapping: u32,
 }
 
 impl Day4 {
     pub fn run(file_path: &String) -> Day4 {
         Day4 {
-            number_of_pairs: Self::detect_number_of_pairs(file_path),
+            number_of_pairs: Self::detect_number_of_pairs(
+                file_path,
+                |first_elfe_range, second_elfe_range| {
+                    (first_elfe_range.contains(&second_elfe_range.start())
+                        && first_elfe_range.contains(&second_elfe_range.end()))
+                        || (second_elfe_range.contains(&first_elfe_range.start())
+                            && second_elfe_range.contains(&first_elfe_range.end()))
+                },
+            ),
+            number_of_pairs_partly_overlapping: Self::detect_number_of_pairs(
+                file_path,
+                |first_elfe_range, second_elfe_range| {
+                    first_elfe_range.contains(&second_elfe_range.start())
+                        || first_elfe_range.contains(&second_elfe_range.end())
+                        || second_elfe_range.contains(&first_elfe_range.start())
+                        || second_elfe_range.contains(&first_elfe_range.end())
+                },
+            ),
         }
     }
 
-    fn detect_number_of_pairs(file_path: &String) -> u32 {
-        Self::pairs(file_path, |first_elfe_range, second_elfe_range| {
-            (first_elfe_range.contains(&second_elfe_range.start())
-                && first_elfe_range.contains(&second_elfe_range.end()))
-                || (second_elfe_range.contains(&first_elfe_range.start())
-                    && second_elfe_range.contains(&first_elfe_range.end()))
-        })
-        .into_iter()
-        .filter(|pair| pair.assignment_fully_contained)
-        .count() as u32
+    fn detect_number_of_pairs(
+        file_path: &String,
+        is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
+    ) -> u32 {
+        Self::pairs(file_path, is_overlapping)
+            .into_iter()
+            .filter(|pair| pair.assignment_fully_contained)
+            .count() as u32
     }
 
     fn pairs(
         file_path: &String,
-        apply: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
+        is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
     ) -> Vec<Pair> {
         let file_content = file_content(file_path);
         file_content
@@ -35,7 +51,7 @@ impl Day4 {
             .collect::<Vec<&str>>()
             .into_iter()
             .filter(|str| !str.is_empty())
-            .map(|pair| Pair::from(pair, apply))
+            .map(|pair| Pair::from(pair, is_overlapping))
             .collect()
     }
 }
@@ -48,6 +64,11 @@ impl Display for Day4 {
             "\t- number of assigned pairs fully covered: {}",
             self.number_of_pairs
         )?;
+        writeln!(
+            formatter,
+            "\t- number of assigned pairs partly covered: {}",
+            self.number_of_pairs_partly_overlapping
+        )?;
         Ok(())
     }
 }
@@ -57,7 +78,7 @@ struct Pair {
 }
 
 impl Pair {
-    fn from(pair: &str, apply: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool) -> Pair {
+    fn from(pair: &str, is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool) -> Pair {
         let pair1 = pair
             .split(",")
             .collect::<Vec<&str>>()
@@ -73,7 +94,7 @@ impl Pair {
             })
             .collect::<Vec<u32>>();
         Pair {
-            assignment_fully_contained: apply(
+            assignment_fully_contained: is_overlapping(
                 RangeInclusive::new(pair1[0], pair1[1]),
                 RangeInclusive::new(pair1[2], pair1[3]),
             ),
@@ -90,6 +111,11 @@ mod camp_cleanup {
         assert_eq!(
             Day4::run(&String::from("resources/tests/day_4_001.txt")).number_of_pairs,
             2
+        );
+        assert_eq!(
+            Day4::run(&String::from("resources/tests/day_4_001.txt"))
+                .number_of_pairs_partly_overlapping,
+            4
         );
     }
 }

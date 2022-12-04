@@ -26,6 +26,7 @@ fn main() {
                     "day1" => println!("{}", Day1::run(path)),
                     "day2" => println!("{}", Day2::run(path)),
                     "day3" => println!("{}", Day3::run(path)),
+                    "day4" => println!("{}", Day4::run(path)),
                     _ => println!("Unknown day"),
                 });
         }
