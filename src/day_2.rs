@@ -65,12 +65,12 @@ impl Display for Shape {
 
 impl PartialOrd for Shape {
     fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        return match (&self.name, &other.name) {
+        match (&self.name, &other.name) {
             (ShapeName::Rock, ShapeName::Scissors) => Some(Greater),
             (ShapeName::Scissors, ShapeName::Paper) => Some(Greater),
             (ShapeName::Paper, ShapeName::Rock) => Some(Greater),
             _ => Some(Less),
-        };
+        }
     }
 }
 
@@ -84,12 +84,10 @@ struct Scissors(Shape);
 
 impl Default for Scissors {
     fn default() -> Self {
-        Scissors {
-            0: Shape {
-                name: ShapeName::Scissors,
-                points: 3,
-            },
-        }
+        Scissors(Shape {
+            name: ShapeName::Scissors,
+            points: 3,
+        })
     }
 }
 
@@ -97,12 +95,10 @@ struct Paper(Shape);
 
 impl Default for Paper {
     fn default() -> Self {
-        Paper {
-            0: Shape {
-                name: ShapeName::Paper,
-                points: 2,
-            },
-        }
+        Paper(Shape {
+            name: ShapeName::Paper,
+            points: 2,
+        })
     }
 }
 
@@ -110,12 +106,10 @@ struct Rock(Shape);
 
 impl Default for Rock {
     fn default() -> Self {
-        Rock {
-            0: Shape {
-                name: ShapeName::Rock,
-                points: 1,
-            },
-        }
+        Rock(Shape {
+            name: ShapeName::Rock,
+            points: 1,
+        })
     }
 }
 
@@ -124,33 +118,32 @@ struct UnencryptedRound<'a>((&'a Shape, &'a UnencryptedShape));
 
 impl<'a> UnencryptedRound<'a> {
     fn score(&self) -> Result<u32, ()> {
-        match self.0 {
-            (opponent, me) => Ok(self.play(opponent, me)),
-        }
+        let (opponent, me) = self.0;
+        Ok(self.play(opponent, me))
     }
 
     fn play(&self, opponent: &Shape, me: &UnencryptedShape) -> u32 {
-        return match me.name {
+        match me.name {
             Issue::Draw => opponent.points + 3,
-            Issue::Lose => Self::lose_over(opponent) + 0,
+            Issue::Lose => Self::lose_over(opponent),
             Issue::Win => Self::win_over(opponent) + 6,
-        };
+        }
     }
 
     fn lose_over(opponent: &Shape) -> u32 {
-        return match opponent.name {
+        match opponent.name {
             ShapeName::Scissors => 2,
             ShapeName::Paper => 1,
             ShapeName::Rock => 3,
-        };
+        }
     }
 
     fn win_over(opponent: &Shape) -> u32 {
-        return match opponent.name {
+        match opponent.name {
             ShapeName::Scissors => 1,
             ShapeName::Paper => 3,
             ShapeName::Rock => 2,
-        };
+        }
     }
 }
 
@@ -159,9 +152,8 @@ struct Round<'a>((&'a Shape, &'a Shape));
 
 impl<'a> Round<'a> {
     fn score(&self) -> Result<u32, ()> {
-        match self.0 {
-            (opponent, me) => Ok(self.play(opponent, me)),
-        }
+        let (opponent, me) = self.0;
+        Ok(self.play(opponent, me))
     }
 
     fn play(&self, opponent: &Shape, me: &Shape) -> u32 {
@@ -181,15 +173,12 @@ struct Rounds(Vec<(String, String)>);
 impl Rounds {
     fn new(rounds: Vec<&str>) -> Rounds {
         let mut all_rounds: Vec<(String, String)> = Vec::new();
-        rounds
-            .iter()
-            .filter(|str| !str.is_empty())
-            .for_each(|round| {
-                let players = round.split(" ").collect::<Vec<&str>>();
-                let opponent = players[0];
-                let me = players[1];
-                all_rounds.push((opponent.into(), me.into()));
-            });
+        rounds.iter().for_each(|round| {
+            let players = round.split(' ').collect::<Vec<&str>>();
+            let opponent = players[0];
+            let me = players[1];
+            all_rounds.push((opponent.into(), me.into()));
+        });
         Rounds(all_rounds)
     }
 }
@@ -213,8 +202,9 @@ impl Day2 {
             .into_iter()
             .map(|(opponent, me)| {
                 Round((
-                    &Shape::try_from(opponent.as_str()).expect(&format!("opponent: {}", opponent)),
-                    &Shape::try_from(me.as_str()).expect(&format!("me: {}", me)),
+                    &Shape::try_from(opponent.as_str())
+                        .unwrap_or_else(|_| panic!("opponent: {}", opponent)),
+                    &Shape::try_from(me.as_str()).unwrap_or_else(|_| panic!("me: {}", me)),
                 ))
                 .score()
                 .expect("Should have scored")
@@ -228,8 +218,10 @@ impl Day2 {
             .into_iter()
             .map(|(opponent, me)| {
                 UnencryptedRound((
-                    &Shape::try_from(opponent.as_str()).expect(&format!("opponent: {}", opponent)),
-                    &UnencryptedShape::try_from(me.as_str()).expect(&format!("me: {}", me)),
+                    &Shape::try_from(opponent.as_str())
+                        .unwrap_or_else(|_| panic!("opponent: {}", opponent)),
+                    &UnencryptedShape::try_from(me.as_str())
+                        .unwrap_or_else(|_| panic!("me: {}", me)),
                 ))
                 .score()
                 .expect("Should have scored")
@@ -239,7 +231,7 @@ impl Day2 {
 
     fn rounds(file_path: &String) -> Rounds {
         let file_content = file_content(file_path);
-        Rounds::new(file_content.split("\n").collect())
+        Rounds::new(file_content.split('\n').collect())
     }
 }
 

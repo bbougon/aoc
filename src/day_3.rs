@@ -50,12 +50,8 @@ impl Day3 {
     }
 
     fn reorganise_by_groups(file_path: &String) -> Vec<u32> {
-        let file_content = file_content(file_path);
-        file_content
-            .split("\n")
-            .collect::<Vec<&str>>()
-            .into_iter()
-            .filter(|str| !str.is_empty())
+        file_content(file_path)
+            .split('\n')
             .collect::<Vec<&str>>()
             .chunks(3)
             .map(|group| {
@@ -83,7 +79,7 @@ impl Day3 {
 
     fn rucksacks(file_path: &String) -> Rucksacks {
         let file_content = file_content(file_path);
-        Rucksacks::new(file_content.split("\n").collect())
+        Rucksacks::new(file_content.split('\n').collect())
     }
 }
 
@@ -107,7 +103,6 @@ impl Rucksacks {
         let mut all_rucksacks: Vec<(String, String)> = Vec::new();
         rucksacks
             .iter()
-            .filter(|str| !str.is_empty())
             .for_each(|rucksack| {
                 let compartments = rucksack.split_at(rucksack.len() / 2);
                 all_rucksacks.push((compartments.0.into(), compartments.1.into()));

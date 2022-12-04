@@ -3,7 +3,7 @@ use std::fmt::{Display, Formatter};
 
 impl Day1 {
     pub(crate) fn run(file_path: &String) -> Day1 {
-        let stock = Self::stock(file_path.into());
+        let stock = Self::stock(file_path);
         Day1 {
             most_calories: Self::most_calories(&stock),
             top_3_most_calories_sum: Self::top_3_most_calories_sum(&stock),
@@ -46,14 +46,13 @@ impl Stock {
         let mut stocks: Vec<CaloriesItems> = Vec::new();
         calories_stock.iter().for_each(|calories| {
             let values = calories
-                .split("\n")
+                .split('\n')
                 .collect::<Vec<&str>>()
                 .iter()
-                .filter(|str| !str.is_empty())
                 .map(|calories| {
                     calories
                         .parse::<u32>()
-                        .expect(&format!("Could not parse '{}' as int", calories))
+                        .unwrap_or_else(|_| panic!("Could not parse '{}' as int", calories))
                 })
                 .collect::<Vec<u32>>();
             stocks.push(CaloriesItems(values));
@@ -69,13 +68,8 @@ impl PartialEq for CaloriesItems {
     fn eq(&self, other: &Self) -> bool {
         self.0 == other.0
     }
-
-    fn ne(&self, other: &Self) -> bool {
-        self.0 != other.0
-    }
 }
 
-#[derive(PartialEq)]
 pub struct Day1 {
     most_calories: u32,
     top_3_most_calories_sum: u32,

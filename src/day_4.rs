@@ -13,19 +13,19 @@ impl Day4 {
             number_of_pairs: Self::detect_number_of_pairs(
                 file_path,
                 |first_elfe_range, second_elfe_range| {
-                    (first_elfe_range.contains(&second_elfe_range.start())
-                        && first_elfe_range.contains(&second_elfe_range.end()))
-                        || (second_elfe_range.contains(&first_elfe_range.start())
-                            && second_elfe_range.contains(&first_elfe_range.end()))
+                    (first_elfe_range.contains(second_elfe_range.start())
+                        && first_elfe_range.contains(second_elfe_range.end()))
+                        || (second_elfe_range.contains(first_elfe_range.start())
+                            && second_elfe_range.contains(first_elfe_range.end()))
                 },
             ),
             number_of_pairs_partly_overlapping: Self::detect_number_of_pairs(
                 file_path,
                 |first_elfe_range, second_elfe_range| {
-                    first_elfe_range.contains(&second_elfe_range.start())
-                        || first_elfe_range.contains(&second_elfe_range.end())
-                        || second_elfe_range.contains(&first_elfe_range.start())
-                        || second_elfe_range.contains(&first_elfe_range.end())
+                    first_elfe_range.contains(second_elfe_range.start())
+                        || first_elfe_range.contains(second_elfe_range.end())
+                        || second_elfe_range.contains(first_elfe_range.start())
+                        || second_elfe_range.contains(first_elfe_range.end())
                 },
             ),
         }
@@ -35,24 +35,11 @@ impl Day4 {
         file_path: &String,
         is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
     ) -> u32 {
-        Self::pairs(file_path, is_overlapping)
-            .into_iter()
+        file_content(file_path)
+            .split('\n')
+            .map(|line| Pair::from(line, is_overlapping))
             .filter(|pair| pair.assignment_fully_contained)
             .count() as u32
-    }
-
-    fn pairs(
-        file_path: &String,
-        is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
-    ) -> Vec<Pair> {
-        let file_content = file_content(file_path);
-        file_content
-            .split("\n")
-            .collect::<Vec<&str>>()
-            .into_iter()
-            .filter(|str| !str.is_empty())
-            .map(|pair| Pair::from(pair, is_overlapping))
-            .collect()
     }
 }
 
@@ -78,25 +65,23 @@ struct Pair {
 }
 
 impl Pair {
-    fn from(pair: &str, is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool) -> Pair {
-        let pair1 = pair
-            .split(",")
-            .collect::<Vec<&str>>()
-            .iter()
-            .map(|section| section.split("-").collect::<Vec<&str>>())
-            .flatten()
-            .collect::<Vec<&str>>()
-            .into_iter()
+    fn from(
+        line: &str,
+        is_overlapping: fn(RangeInclusive<u32>, RangeInclusive<u32>) -> bool,
+    ) -> Pair {
+        let pair = line
+            .split(',')
+            .flat_map(|section| section.split('-').collect::<Vec<&str>>())
             .map(|section| {
                 section
                     .parse::<u32>()
-                    .expect(&format!("Could not parse '{}' as int", section))
+                    .unwrap_or_else(|_| panic!("Could not parse '{}' as int", section))
             })
             .collect::<Vec<u32>>();
         Pair {
             assignment_fully_contained: is_overlapping(
-                RangeInclusive::new(pair1[0], pair1[1]),
-                RangeInclusive::new(pair1[2], pair1[3]),
+                RangeInclusive::new(pair[0], pair[1]),
+                RangeInclusive::new(pair[2], pair[3]),
             ),
         }
     }
