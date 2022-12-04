@@ -23,7 +23,10 @@ impl Day1 {
     }
 
     fn most_calories(stock: &Stock) -> u32 {
-        *Self::sums_of_calories(stock).iter().max().unwrap()
+        *Self::sums_of_calories(stock)
+            .iter()
+            .max()
+            .expect("Should have max")
     }
 
     fn sums_of_calories(stock: &Stock) -> Vec<u32> {

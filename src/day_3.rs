@@ -12,12 +12,14 @@ const ALPHABET: [&u8; 52] = [
 
 pub struct Day3 {
     reorganisation: u32,
+    reorganisation_by_groups: u32,
 }
 
 impl Day3 {
     pub(crate) fn run(file_path: &String) -> Day3 {
         Day3 {
             reorganisation: Self::reorganise(file_path).iter().sum(),
+            reorganisation_by_groups: Self::reorganise_by_groups(file_path).iter().sum(),
         }
     }
 
@@ -47,6 +49,38 @@ impl Day3 {
             .collect::<Vec<u32>>()
     }
 
+    fn reorganise_by_groups(file_path: &String) -> Vec<u32> {
+        let file_content = file_content(file_path);
+        file_content
+            .split("\n")
+            .collect::<Vec<&str>>()
+            .into_iter()
+            .filter(|str| !str.is_empty())
+            .collect::<Vec<&str>>()
+            .chunks(3)
+            .map(|group| {
+                ALPHABET
+                    .into_iter()
+                    .position(|alphabet| {
+                        let first_line = String::from(group[0]).into_bytes();
+                        let second_line = String::from(group[1]).into_bytes();
+                        let third_line = String::from(group[2]).into_bytes();
+                        alphabet
+                            == first_line
+                                .into_iter()
+                                .filter(|letter| {
+                                    second_line.contains(letter) && third_line.contains(letter)
+                                })
+                                .collect::<Vec<u8>>()
+                                .first()
+                                .expect("Should have been found")
+                    })
+                    .expect("") as u32
+                    + 1
+            })
+            .collect::<Vec<u32>>()
+    }
+
     fn rucksacks(file_path: &String) -> Rucksacks {
         let file_content = file_content(file_path);
         Rucksacks::new(file_content.split("\n").collect())
@@ -57,6 +91,11 @@ impl Display for Day3 {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(formatter, "Day 3, Rucksack Reorganization:")?;
         writeln!(formatter, "\t- priorities: {}", self.reorganisation)?;
+        writeln!(
+            formatter,
+            "\t- priorities for groups: {}",
+            self.reorganisation_by_groups
+        )?;
         Ok(())
     }
 }
@@ -87,11 +126,19 @@ mod rucksack_reorganisation {
     fn should_reorganise() {
         assert_eq!(
             Day3::run(&String::from("resources/tests/day_3_001.txt")).reorganisation,
-            16
+            96
         );
         assert_eq!(
             Day3::run(&String::from("resources/tests/day_3_002.txt")).reorganisation,
             157
+        );
+    }
+
+    #[test]
+    fn should_should_reorganize_by_groups() {
+        assert_eq!(
+            Day3::run(&String::from("resources/tests/day_3_002.txt")).reorganisation_by_groups,
+            70
         );
     }
 }
