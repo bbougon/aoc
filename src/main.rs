@@ -1,17 +1,21 @@
 use crate::day_2::Day2;
+use crate::day_3::Day3;
 use clap::Parser;
 use day_1::Day1;
 
 mod day_1;
 mod day_2;
+mod day_3;
 mod file_reader;
 
 fn main() {
     let cli = Cli::parse();
-    if cli.day == 1 {
-        println!("{}", Day1::run(&cli.file_path));
+    match cli.day {
+        1 => println!("{}", Day1::run(&cli.file_path)),
+        2 => println!("{}", Day2::run(&cli.file_path)),
+        3 => println!("{}", Day3::run(&cli.file_path)),
+        _ => println!("Unknown day"),
     }
-    println!("{}", Day2::run(&cli.file_path));
 }
 
 #[derive(Parser)]
