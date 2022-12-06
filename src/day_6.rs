@@ -5,16 +5,18 @@ use std::ops::Range;
 
 pub struct Day6 {
     first_marker_end_position: u32,
+    start_up_message_end_position: u32,
 }
 
 impl Day6 {
     pub fn run(file_path: &String) -> Day6 {
         Day6 {
-            first_marker_end_position: Self::find_marker_position(file_path),
+            first_marker_end_position: Self::find_marker_position(file_path, 4),
+            start_up_message_end_position: Self::find_marker_position(file_path, 14),
         }
     }
 
-    fn find_marker_position(file_path: &String) -> u32 {
+    fn find_marker_position(file_path: &String, step: usize) -> u32 {
         let file_content = file_content(file_path);
         let content = file_content.split('\n').collect::<Vec<&str>>();
         let datastream = content.first().expect("").as_bytes();
@@ -24,16 +26,14 @@ impl Day6 {
         };
         (range
             .into_iter()
-            .filter(|range| range < &datastream.len().wrapping_sub(4))
-            .map(|range| &datastream[range..range + 4])
-            .collect::<Vec<&[u8]>>()
-            .into_iter()
+            .filter(|range| range < &datastream.len().wrapping_sub(step))
+            .map(|range| &datastream[range..range + step])
             .map(|marker| HashSet::from_iter(marker))
             .collect::<Vec<HashSet<&u8>>>()
             .iter()
-            .position(|marker| marker.len() == 4)
+            .position(|marker| marker.len() == step)
             .expect("")
-            + 4) as u32
+            + step) as u32
     }
 }
 
@@ -44,6 +44,11 @@ impl Display for Day6 {
             formatter,
             "\t- marker position: {}",
             self.first_marker_end_position
+        )?;
+        writeln!(
+            formatter,
+            "\t- start up message position: {}",
+            self.start_up_message_end_position
         )?;
         Ok(())
     }
@@ -74,6 +79,30 @@ mod tuning_trouble {
         assert_eq!(
             Day6::run(&String::from("resources/tests/day_6_005.txt")).first_marker_end_position,
             11
+        );
+    }
+
+    #[test]
+    fn should_give_start_up_message_end_position() {
+        assert_eq!(
+            Day6::run(&String::from("resources/tests/day_6_001.txt")).start_up_message_end_position,
+            19
+        );
+        assert_eq!(
+            Day6::run(&String::from("resources/tests/day_6_002.txt")).start_up_message_end_position,
+            23
+        );
+        assert_eq!(
+            Day6::run(&String::from("resources/tests/day_6_003.txt")).start_up_message_end_position,
+            23
+        );
+        assert_eq!(
+            Day6::run(&String::from("resources/tests/day_6_004.txt")).start_up_message_end_position,
+            29
+        );
+        assert_eq!(
+            Day6::run(&String::from("resources/tests/day_6_005.txt")).start_up_message_end_position,
+            26
         );
     }
 }
