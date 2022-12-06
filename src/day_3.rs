@@ -101,12 +101,10 @@ struct Rucksacks(Vec<(String, String)>);
 impl Rucksacks {
     fn new(rucksacks: Vec<&str>) -> Rucksacks {
         let mut all_rucksacks: Vec<(String, String)> = Vec::new();
-        rucksacks
-            .iter()
-            .for_each(|rucksack| {
-                let compartments = rucksack.split_at(rucksack.len() / 2);
-                all_rucksacks.push((compartments.0.into(), compartments.1.into()));
-            });
+        rucksacks.iter().for_each(|rucksack| {
+            let compartments = rucksack.split_at(rucksack.len() / 2);
+            all_rucksacks.push((compartments.0.into(), compartments.1.into()));
+        });
         Rucksacks(all_rucksacks)
     }
 }

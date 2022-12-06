@@ -1,12 +1,12 @@
+use crate::file_reader::file_content;
 use std::collections::HashMap;
 use std::fmt::{Display, Formatter};
 use std::ops::{Range, RangeInclusive};
-use crate::file_reader::file_content;
 
 const ALPHABET: [u8; 26] = [
-    b"A"[0], b"B"[0], b"C"[0], b"D"[0], b"E"[0], b"F"[0], b"G"[0], b"H"[0], b"I"[0],
-    b"J"[0], b"K"[0], b"L"[0], b"M"[0], b"N"[0], b"O"[0], b"P"[0], b"Q"[0], b"R"[0],
-    b"S"[0], b"T"[0], b"U"[0], b"V"[0], b"W"[0], b"X"[0], b"Y"[0], b"Z"[0],
+    b"A"[0], b"B"[0], b"C"[0], b"D"[0], b"E"[0], b"F"[0], b"G"[0], b"H"[0], b"I"[0], b"J"[0],
+    b"K"[0], b"L"[0], b"M"[0], b"N"[0], b"O"[0], b"P"[0], b"Q"[0], b"R"[0], b"S"[0], b"T"[0],
+    b"U"[0], b"V"[0], b"W"[0], b"X"[0], b"Y"[0], b"Z"[0],
 ];
 
 pub struct Day5 {
@@ -38,23 +38,33 @@ impl Day5 {
 
         RangeInclusive::new(1, stacks.len())
             .map(|key| {
-                stacks.get_mut(&(key as u32)).expect("").last().expect("").clone()
+                stacks
+                    .get_mut(&(key as u32))
+                    .expect("")
+                    .last()
+                    .expect("")
+                    .clone()
             })
             .collect::<Vec<String>>()
             .join("")
     }
 
     fn remove_crates_from(stacks: &mut HashMap<u32, Vec<String>>, movement: &&Move) {
-        let range = Range { start: 0, end: movement.amount };
+        let range = Range {
+            start: 0,
+            end: movement.amount,
+        };
 
         range.for_each(|_| {
-            stacks.get_mut(&movement.from)
-                .expect("")
-                .pop();
+            stacks.get_mut(&movement.from).expect("").pop();
         });
     }
 
-    fn move_crates(order: fn(Vec<String>) -> Vec<String>, stacks: &mut HashMap<u32, Vec<String>>, movement: &&Move) {
+    fn move_crates(
+        order: fn(Vec<String>) -> Vec<String>,
+        stacks: &mut HashMap<u32, Vec<String>>,
+        movement: &&Move,
+    ) {
         let crates_to_move = stacks
             .get_mut(&movement.from)
             .expect("")
@@ -66,7 +76,8 @@ impl Day5 {
         let mut ordered_crates = order(crates_to_move);
         stacks
             .get_mut(&movement.to)
-            .expect("").append(&mut ordered_crates);
+            .expect("")
+            .append(&mut ordered_crates);
     }
 
     fn moves(template: Vec<&str>) -> Vec<Move> {
@@ -116,7 +127,11 @@ impl Display for Day5 {
     fn fmt(&self, formatter: &mut Formatter<'_>) -> std::fmt::Result {
         writeln!(formatter, "Day 5, Supply Stacks:")?;
         writeln!(formatter, "\t- crates on top: {}", self.top_crates)?;
-        writeln!(formatter, "\t- crates on top with crate mover 9001: {}", self.top_crates_9001)?;
+        writeln!(
+            formatter,
+            "\t- crates on top with crate mover 9001: {}",
+            self.top_crates_9001
+        )?;
         Ok(())
     }
 }
@@ -134,11 +149,17 @@ mod supply_stacks {
 
     #[test]
     fn should_rearrange_stacks() {
-        assert_eq!(Day5::run(&String::from("resources/tests/day_5_001.txt")).top_crates, String::from("CMZ"));
+        assert_eq!(
+            Day5::run(&String::from("resources/tests/day_5_001.txt")).top_crates,
+            String::from("CMZ")
+        );
     }
 
     #[test]
     fn should_rearrange_with_crate_mover_9001() {
-        assert_eq!(Day5::run(&String::from("resources/tests/day_5_001.txt")).top_crates_9001, String::from("MCD"));
+        assert_eq!(
+            Day5::run(&String::from("resources/tests/day_5_001.txt")).top_crates_9001,
+            String::from("MCD")
+        );
     }
 }
