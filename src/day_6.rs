@@ -1,7 +1,6 @@
 use crate::file_reader::file_content;
 use std::collections::HashSet;
 use std::fmt::{Display, Formatter};
-use std::ops::Range;
 
 pub struct Day6 {
     first_marker_end_position: u32,
@@ -19,15 +18,11 @@ impl Day6 {
     fn find_marker_position(file_path: &String, step: usize) -> u32 {
         let file_content = file_content(file_path);
         let content = file_content.split('\n').collect::<Vec<&str>>();
-        let datastream = content.first().expect("").as_bytes();
-        let range = Range {
-            start: 0,
-            end: datastream.len(),
-        };
-        (range
-            .into_iter()
-            .filter(|range| range < &datastream.len().wrapping_sub(step))
-            .map(|range| &datastream[range..range + step])
+        (content
+            .first()
+            .expect("")
+            .as_bytes()
+            .windows(step)
             .map(|marker| HashSet::from_iter(marker))
             .collect::<Vec<HashSet<&u8>>>()
             .iter()
